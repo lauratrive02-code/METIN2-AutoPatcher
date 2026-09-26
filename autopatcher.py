@@ -7,11 +7,12 @@ import subprocess
 import threading
 import json
 import os
+import sys
 
 APP_TITLE = "METIN2 AutoPatcher"
 GAME_EXE = "Metin2Distribute.exe"
 
-PATCHER_VERSION = "1.0.0"
+PATCHER_VERSION = "1.0.1"
 VERSION_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/version.txt"
 PATCHER_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/METIN2_AutoPatcher.exe"
 
