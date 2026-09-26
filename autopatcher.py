@@ -34,7 +34,8 @@ class Patcher:
         self.root.geometry("650x360")
         self.root.resizable(False, False)
 
-        self.base = Path(sys_executable_dir())
+        self.base = Path(sys_executable_dir()) / "METIN2"
+        self.base.mkdir(parents=True, exist_ok=True)
 
         tk.Label(
             root,
