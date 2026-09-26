@@ -12,7 +12,7 @@ import sys
 APP_TITLE = "METIN2 AutoPatcher"
 GAME_EXE = "Metin2Distribute.exe"
 
-PATCHER_VERSION = "1.0.1"
+PATCHER_VERSION = "1.0.2"
 VERSION_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/version.txt"
 PATCHER_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/METIN2_AutoPatcher.exe"
 
@@ -151,6 +151,13 @@ class Patcher:
             command=self.play
         )
         self.play_button.pack(side="left", padx=10)
+
+        tk.Label(
+            root,
+            text=f"AutoPatcher v{PATCHER_VERSION}",
+            font=("Arial", 8),
+            fg="gray"
+        ).pack(side="bottom", pady=8)
 
     def ui(self, status=None, percent=None, detail=None):
         def apply():
