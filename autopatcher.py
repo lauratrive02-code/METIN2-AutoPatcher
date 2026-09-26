@@ -11,6 +11,10 @@ import os
 APP_TITLE = "METIN2 AutoPatcher"
 GAME_EXE = "Metin2Distribute.exe"
 
+PATCHER_VERSION = "1.0.0"
+VERSION_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/version.txt"
+PATCHER_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/METIN2_AutoPatcher.exe"
+
 MANIFEST_ID = "1kondvh40JgAWVAf7BVClSyaKZcSRBPOw"
 MANIFEST_URL = (
     "https://drive.usercontent.google.com/download"
@@ -26,6 +30,58 @@ def sha256_file(path):
                 break
             h.update(chunk)
     return h.hexdigest()
+
+def version_tuple(v):
+    try:
+        return tuple(int(x) for x in v.strip().split("."))
+    except Exception:
+        return (0,)
+
+def check_self_update():
+    if not getattr(sys, "frozen", False):
+        return False
+
+    try:
+        req = urllib.request.Request(VERSION_URL, headers={"User-Agent": "METIN2-AutoPatcher"})
+        with urllib.request.urlopen(req, timeout=15) as response:
+            remote_version = response.read().decode("utf-8").strip()
+
+        if version_tuple(remote_version) <= version_tuple(PATCHER_VERSION):
+            return False
+
+        current_exe = Path(sys.executable).resolve()
+        update_exe = current_exe.with_name("METIN2_AutoPatcher_UPDATE.exe")
+        batch_file = current_exe.with_name("METIN2_AutoPatcher_UPDATE.bat")
+
+        req = urllib.request.Request(PATCHER_URL, headers={"User-Agent": "METIN2-AutoPatcher"})
+        with urllib.request.urlopen(req, timeout=120) as response:
+            with open(update_exe, "wb") as f:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+
+        if update_exe.stat().st_size < 100000:
+            raise RuntimeError("Download AutoPatcher non valido")
+
+        batch = "@echo off\r\n"
+        batch += "timeout /t 2 /nobreak >nul\r\n"
+        batch += f'del /f /q "{current_exe}" >nul 2>&1\r\n'
+        batch += f'move /y "{update_exe}" "{current_exe}" >nul\r\n'
+        batch += f'start "" "{current_exe}"\r\n'
+        batch += 'del /f /q "%~f0"\r\n'
+
+        batch_file.write_text(batch, encoding="utf-8")
+
+        subprocess.Popen(
+            ["cmd.exe", "/c", str(batch_file)],
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        )
+        return True
+
+    except Exception:
+        return False
 
 class Patcher:
     def __init__(self, root):
@@ -259,6 +315,9 @@ def sys_executable_dir():
     return Path(__file__).resolve().parent
 
 if __name__ == "__main__":
+    if check_self_update():
+        sys.exit(0)
+
     root = tk.Tk()
     Patcher(root)
     root.mainloop()

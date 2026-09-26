@@ -40,4 +40,6 @@ jobs:
           name: METIN2 AutoPatcher - Latest
           prerelease: false
           make_latest: true
-          files: dist/METIN2_AutoPatcher.exe
+          files: |
+            dist/METIN2_AutoPatcher.exe
+            version.txt
