@@ -7,12 +7,13 @@ import subprocess
 import threading
 import json
 import os
+import shutil
 import sys
 
 APP_TITLE = "METIN2 AutoPatcher"
-GAME_EXE = "Metin2Distribute.exe"
+GAME_EXE = "metin2client.exe"
 
-PATCHER_VERSION = "1.0.2"
+PATCHER_VERSION = "1.0.3"
 VERSION_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/version.txt"
 PATCHER_URL = "https://github.com/lauratrive02-code/METIN2-AutoPatcher/releases/download/latest/METIN2_AutoPatcher.exe"
 
@@ -81,7 +82,14 @@ def check_self_update():
         )
         return True
 
-    except Exception:
+    except Exception as e:
+        try:
+            messagebox.showerror(
+                "Errore aggiornamento AutoPatcher",
+                f"Auto-update fallito:\n\n{type(e).__name__}: {e}"
+            )
+        except Exception:
+            pass
         return False
 
 class Patcher:
@@ -174,8 +182,32 @@ class Patcher:
         self.update_button.config(state="disabled")
         threading.Thread(target=self.update, daemon=True).start()
 
+    def migrate_old_client_once(self):
+        marker = self.base / ".new_client_20260930"
+
+        if marker.exists():
+            return
+
+        self.ui(
+            "Preparazione nuovo client...",
+            0,
+            "Rimozione vecchia versione"
+        )
+
+        for item in list(self.base.iterdir()):
+            try:
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            except Exception as e:
+                raise RuntimeError(
+                    f"Impossibile rimuovere {item.name}: {e}"
+                )
+
     def update(self):
         try:
+            self.migrate_old_client_once()
             self.ui("Scarico il catalogo aggiornamenti...", 0, "")
 
             with urllib.request.urlopen(MANIFEST_URL, timeout=60) as response:
@@ -266,6 +298,9 @@ class Patcher:
                             temp.unlink()
                         except Exception:
                             pass
+
+            marker = self.base / ".new_client_20260930"
+            marker.write_text("migration completed", encoding="utf-8")
 
             self.ui(
                 "Aggiornamento completato!",
